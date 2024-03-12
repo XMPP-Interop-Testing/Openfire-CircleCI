@@ -3,7 +3,7 @@
 version: 2.1
 
 jobs:
-  build:
+  build-and-run:
     docker:
       - image: cimg/openjdk:17.0
     steps:
@@ -13,14 +13,18 @@ jobs:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v1-{{ .Branch }}-
             - maven-repo-v1-
-      - run: ./mvnw -B package -Dmaven.test.skip=true  # Skipping tests, since we're focussed on integration tests for this project
+      - run: 
+          name: 'Build Openfire'
+          command: ./mvnw -B package -Dmaven.test.skip=true  # Skipping tests, since we're focussed on integration tests for this project
       - save_cache:
           paths:
             - ~/.m2/repository
           key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-      - run: .github/actions/startserver-action/startCIServer.sh -i "127.0.0.1" -h "example.org" -b "./distribution/target/distribution-base"
+      - run: 
+          name: 'Start Openfire'
+          command: .github/actions/startserver-action/startCIServer.sh -i "127.0.0.1" -h "example.org" -b "./distribution/target/distribution-base"
 
 workflows:
   build-openfire:
     jobs:
-      - build
+      - build-and-run
