@@ -3,7 +3,7 @@
 version: 2.1
 
 jobs:
-  build-and-run:
+  build:
     docker:
       - image: cimg/openjdk:17.0
     steps:
@@ -20,11 +20,33 @@ jobs:
           paths:
             - ~/.m2/repository
           key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .github
+            - distribution/target
+  test:
+    docker:
+      - image: cimg/openjdk:17.0
+    steps:
+      - attach_workspace:
+          at: .
       - run: 
           name: 'Start Openfire'
           command: .github/actions/startserver-action/startCIServer.sh -i "127.0.0.1" -h "example.org" -b "./distribution/target/distribution-base"
+          #background: true
+      - run:
+          name: 'Run Compliance Tests'
+          command: echo 'Tests go here'
+      - run:
+          name: 'Stop Openfire'
+          command: .github/actions/stopserver-action/stopCIServer.sh
+
 
 workflows:
   build-openfire:
     jobs:
-      - build-and-run
+      - build
+      - test:
+          requires:
+            - build
