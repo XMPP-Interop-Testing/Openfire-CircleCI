@@ -3,28 +3,35 @@
 version: 2.1
 
 jobs:
-  build:
+  build: # Not a real build, but it could be
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/base:2024.02
+    environment:
+      OPENFIRE_VERSION_DOTS: "4.8.1"
+      OPENFIRE_VERSION_DASHES: "4_8_1"
     steps:
       - checkout
       - restore_cache:
           keys:
-            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v1-{{ .Branch }}-
-            - maven-repo-v1-
+            - tar-{{ .Environment.OPENFIRE_VERSION_DOTS }}
       - run: 
-          name: 'Build Openfire'
-          command: ./mvnw -B package -Dmaven.test.skip=true  # Skipping tests, since we're focussed on integration tests for this project
+          name: 'Fetch Openfire'
+          command: |
+            if [ ! -f openfire.tar.gz ]; then
+              curl -L "https://github.com/igniterealtime/Openfire/releases/download/v$OPENFIRE_VERSION_DOTS/openfire_$OPENFIRE_VERSION_DASHES.tar.gz" -o openfire.tar.gz
+            fi
+      - run:
+          name: 'Extract Openfire'
+          command: tar -xzf openfire.tar.gz
       - save_cache:
           paths:
-            - ~/.m2/repository
-          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - openfire.tar.gz
+          key: tar-{{ .Environment.OPENFIRE_VERSION_DOTS }}
       - persist_to_workspace:
           root: .
           paths:
             - .github
-            - distribution/target
+            - openfire
   test:
     docker:
       - image: cimg/openjdk:17.0
@@ -33,7 +40,7 @@ jobs:
           at: .
       - run: 
           name: 'Start Openfire'
-          command: .github/actions/startserver-action/startCIServer.sh -i "127.0.0.1" -h "example.org" -b "./distribution/target/distribution-base"
+          command: .github/actions/startserver-action/startCIServer.sh -i "127.0.0.1" -h "example.org" -b "openfire"
           background: true
       - run:
           name: 'Wait for Openfire to start'
