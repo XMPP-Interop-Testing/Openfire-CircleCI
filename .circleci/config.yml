@@ -2,6 +2,9 @@
 # See: https://circleci.com/docs/configuration-reference
 version: 2.1
 
+orbs:
+    interop-test: interop-test/tests@dev:alpha
+
 jobs:
   build: # Not a real build, but it could be
     docker:
@@ -40,17 +43,17 @@ jobs:
           at: .
       - run: 
           name: 'Start Openfire'
-          command: .github/actions/startserver-action/startCIServer.sh -i "127.0.0.1" -h "example.org" -b "openfire"
+          command: |
+            .github/actions/startserver-action/startCIServer.sh -i "127.0.0.1" -h "example.org" -b "openfire"
+            sleep 6000
           background: true
       - run:
-          name: 'Wait for Openfire to start'
-          command: sleep 10     # I'm really, really sorry,
-      - run:
-          name: 'Run Compliance Tests'
-          command: echo 'Tests go here'
-      - run:
-          name: 'Stop Openfire'
-          command: .github/actions/stopserver-action/stopCIServer.sh
+          name: 'Wait for Openfire Admin Console to be available'
+          command: wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 10 http://localhost:9090/login.jsp
+      - interop-test/test:
+          adminAccountUsername: 'admin'
+          adminAccountPassword: 'admin'
+          disabledTests: 'EntityCapsTest,SoftwareInfoIntegrationTest,XmppConnectionIntegrationTest,StreamManagementTest,WaitForClosingStreamElementTest,IoTControlIntegrationTest,ModularXmppClientToServerConnectionLowLevelIntegrationTest'
 
 
 workflows:
