@@ -57,13 +57,7 @@ function launchOpenfire {
 	sed -i -e 's/example.org/'"${HOST}"'/g' ${BASEDIR}/conf/openfire.xml
 
 	echo "Starting Openfire…"
-	"${OPENFIRE_SHELL_SCRIPT}" &
-
-	# Wait 120 seconds for Openfire to open up the web interface and
-	# assume Openfire is fully operational once that happens (not sure if
-	# this assumption is correct).
-	echo "Waiting for Openfire…"
-	timeout 120 bash -c 'until printf "" 2>>/dev/null >>/dev/tcp/$0/$1; do sleep 0.3; done' localhost 7070
+	"${OPENFIRE_SHELL_SCRIPT}" 
 }
 
 if [[ -n "${IPADDRESS-}" ]]; then
