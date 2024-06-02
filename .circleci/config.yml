@@ -3,7 +3,7 @@
 version: 2.1
 
 orbs:
-    interop-test: interop-test/tests@dev:alpha
+    interop-test: xmpp-interop-tests/test@0.1.0
 
 jobs:
   build: # Not a real build, but it could be
