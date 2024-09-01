@@ -10,8 +10,8 @@ jobs:
     docker:
       - image: cimg/base:2024.02
     environment:
-      OPENFIRE_VERSION_DOTS: "4.8.1"
-      OPENFIRE_VERSION_DASHES: "4_8_1"
+      OPENFIRE_VERSION_DOTS: "4.8.3"
+      OPENFIRE_VERSION_DASHES: "4_8_3"
     steps:
       - checkout
       - restore_cache:
